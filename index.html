@@ -47,14 +47,43 @@ nav a{text-decoration:none;color:var(--muted);font-size:15px}
 nav a:hover{color:var(--text)}
 .pill{padding:8px 16px;border-radius:999px;background:var(--text);color:#fff!important}
 .hero{padding:72px 0 56px}
-.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.hero-grid>*{min-width:0}
 .badge{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:999px;font-size:14px;color:var(--muted);background:var(--soft)}
 h1{font-size:clamp(38px,6vw,64px);line-height:1.08;margin:18px 0 16px;letter-spacing:-.02em}
 .lead{font-size:20px;color:var(--muted);margin:0 0 28px;max-width:540px}
 .btns{display:flex;gap:12px;flex-wrap:wrap}
 .btn{display:inline-block;padding:13px 24px;border-radius:12px;font-weight:600;text-decoration:none;border:1px solid var(--text)}
 .btn.dark{background:var(--text);color:#fff}
-.plain img{width:100%;max-height:520px;object-fit:contain;margin:0 auto}
+
+/* Video card */
+.vcard{position:relative;display:block;width:100%;aspect-ratio:16/10;padding:0;border:0;border-radius:24px;overflow:hidden;background:#0c0d11;isolation:isolate;cursor:pointer;font:inherit;color:#fff;box-shadow:0 24px 60px rgba(10,14,30,.28);-webkit-tap-highlight-color:transparent}
+.vcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.8;transition:transform .8s cubic-bezier(.2,.7,.2,1),opacity .4s;pointer-events:none}
+.vcard:hover video{transform:scale(1.03);opacity:.95}
+.vcard::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:
+ radial-gradient(75% 75% at 0% 0%,rgba(98,132,224,.70),rgba(98,132,224,0) 62%),
+ radial-gradient(75% 75% at 100% 100%,rgba(98,132,224,.60),rgba(98,132,224,0) 62%),
+ linear-gradient(rgba(12,13,17,.18),rgba(12,13,17,.18))}
+.vcard::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);pointer-events:none}
+.play{position:absolute;left:50%;top:50%;z-index:2;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:999px;font-size:17px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;
+ background:rgba(28,30,38,.55);border:1px solid rgba(255,255,255,.30);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+ transform:translate(calc(-50% + var(--x,0px)),calc(-50% + var(--y,0px)));will-change:transform;pointer-events:none;transition:background .25s,border-color .25s}
+.play svg{width:18px;height:18px;flex:none}
+.vcard:hover .play{background:rgba(40,43,54,.72);border-color:rgba(255,255,255,.5)}
+.vcard:focus-visible{outline:3px solid #6284e0;outline-offset:4px}
+
+/* Video modal */
+.modal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,8,14,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .25s}
+.modal[hidden]{display:none}
+.modal.open{opacity:1}
+.mbox{position:relative;width:min(1100px,100%);transform:translateY(14px) scale(.97);transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.modal.open .mbox{transform:none}
+.mbox video{display:block;width:100%;max-height:82vh;background:#000;border-radius:18px;outline:0}
+.mclose{position:absolute;top:-52px;right:0;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.mclose:hover{background:rgba(255,255,255,.22)}
+.mclose:focus-visible{outline:3px solid #6284e0;outline-offset:2px}
+body.noscroll{overflow:hidden}
+
 .shot{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.10);background:var(--soft)}
 section{padding:72px 0}
 .alt{background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -77,9 +106,17 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
 @media(max-width:820px){
  .hero{padding:44px 0 36px}
  .hero-grid,.two,.facts{grid-template-columns:1fr}
+ .hero-grid{gap:36px}
  nav a:not(.pill){display:none}
  section{padding:52px 0}
  .dev{grid-template-columns:1fr;padding:24px}
+ .vcard{border-radius:20px}
+ .play{padding:12px 22px;font-size:16px}
+ .modal{padding:12px}
+ .mclose{top:-50px}
+}
+@media(prefers-reduced-motion:reduce){
+ .vcard video,.modal,.mbox{transition:none}
 }
 </style>
 </head>
@@ -109,7 +146,15 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
      <a class="btn" href="#developers">Meet the developers</a>
     </div>
    </div>
-   <div class="plain"><img src="https://res.cloudinary.com/xmt3m95n/image/upload/v1792837286/836cdb6f-8cd6-4408-9529-307548dadb4f-removebg-preview.png" alt="Mitfly"></div>
+   <div>
+    <button class="vcard" id="vcard" type="button" aria-label="Play the Mitfly video" aria-haspopup="dialog">
+     <video src="https://res.cloudinary.com/xmt3m95n/video/upload/v1793309283/5413883659033816677.mp4#t=0.5" preload="metadata" muted playsinline tabindex="-1" aria-hidden="true"></video>
+     <span class="play" id="play">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+      play video
+     </span>
+    </button>
+   </div>
   </div>
  </div>
 
@@ -172,5 +217,77 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
   <span>Launch expected in 2027</span>
  </div>
 </footer>
+
+<div class="modal" id="vmodal" role="dialog" aria-modal="true" aria-label="Mitfly video" hidden>
+ <div class="mbox">
+  <button class="mclose" id="vclose" type="button" aria-label="Close video">&times;</button>
+  <video id="mv" controls playsinline preload="none"></video>
+ </div>
+</div>
+
+<script>
+(function(){
+  var VIDEO = "https://res.cloudinary.com/xmt3m95n/video/upload/v1793309283/5413883659033816677.mp4";
+  var card = document.getElementById("vcard");
+  var play = document.getElementById("play");
+  var modal = document.getElementById("vmodal");
+  var mv = document.getElementById("mv");
+  var closeBtn = document.getElementById("vclose");
+  var lastFocus = null;
+
+  /* Play button follows the cursor (mouse devices only) */
+  var fine = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+  var calm = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if (fine && !calm) {
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+    function tick(){
+      cx += (tx - cx) * 0.16;
+      cy += (ty - cy) * 0.16;
+      play.style.setProperty("--x", cx.toFixed(1) + "px");
+      play.style.setProperty("--y", cy.toFixed(1) + "px");
+      if (Math.abs(tx - cx) > 0.2 || Math.abs(ty - cy) > 0.2) { raf = requestAnimationFrame(tick); }
+      else { raf = 0; }
+    }
+    function go(){ if (!raf) raf = requestAnimationFrame(tick); }
+    card.addEventListener("pointermove", function(e){
+      var r = card.getBoundingClientRect();
+      var maxX = r.width / 2 - play.offsetWidth / 2 - 14;
+      var maxY = r.height / 2 - play.offsetHeight / 2 - 14;
+      tx = Math.max(-maxX, Math.min(maxX, e.clientX - r.left - r.width / 2));
+      ty = Math.max(-maxY, Math.min(maxY, e.clientY - r.top - r.height / 2));
+      go();
+    });
+    card.addEventListener("pointerleave", function(){ tx = 0; ty = 0; go(); });
+  }
+
+  /* Open and close the video */
+  function openVideo(){
+    lastFocus = document.activeElement;
+    mv.src = VIDEO;
+    modal.hidden = false;
+    document.body.classList.add("noscroll");
+    requestAnimationFrame(function(){ modal.classList.add("open"); });
+    var p = mv.play();
+    if (p && p.catch) p.catch(function(){});
+    closeBtn.focus({preventScroll:true});
+  }
+  function closeVideo(){
+    if (modal.hidden) return;
+    modal.classList.remove("open");
+    mv.pause();
+    setTimeout(function(){
+      modal.hidden = true;
+      mv.removeAttribute("src");
+      mv.load();
+    }, 250);
+    document.body.classList.remove("noscroll");
+    if (lastFocus) lastFocus.focus({preventScroll:true});
+  }
+  card.addEventListener("click", openVideo);
+  closeBtn.addEventListener("click", closeVideo);
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeVideo(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeVideo(); });
+})();
+</script>
 </body>
 </html>

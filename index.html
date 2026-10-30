@@ -56,8 +56,8 @@ h1{font-size:clamp(38px,6vw,64px);line-height:1.08;margin:18px 0 16px;letter-spa
 .btn{display:inline-block;padding:13px 24px;border-radius:12px;font-weight:600;text-decoration:none;border:1px solid var(--text)}
 .btn.dark{background:var(--text);color:#fff}
 
-/* Video card */
-.vcard{position:relative;display:block;width:100%;aspect-ratio:16/10;padding:0;border:0;border-radius:24px;overflow:hidden;background:#0c0d11;isolation:isolate;cursor:pointer;font:inherit;color:#fff;box-shadow:0 24px 60px rgba(10,14,30,.28);-webkit-tap-highlight-color:transparent}
+/* Video card: the video plays inside this box */
+.vcard{position:relative;display:block;width:100%;aspect-ratio:16/10;border-radius:24px;overflow:hidden;background:#0c0d11;isolation:isolate;cursor:pointer;color:#fff;box-shadow:0 24px 60px rgba(10,14,30,.28);-webkit-tap-highlight-color:transparent}
 .vcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.8;transition:transform .8s cubic-bezier(.2,.7,.2,1),opacity .4s;pointer-events:none}
 .vcard:hover video{transform:scale(1.03);opacity:.95}
 .vcard::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:
@@ -65,24 +65,20 @@ h1{font-size:clamp(38px,6vw,64px);line-height:1.08;margin:18px 0 16px;letter-spa
  radial-gradient(75% 75% at 100% 100%,rgba(98,132,224,.60),rgba(98,132,224,0) 62%),
  linear-gradient(rgba(12,13,17,.18),rgba(12,13,17,.18))}
 .vcard::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);pointer-events:none}
-.play{position:absolute;left:50%;top:50%;z-index:2;display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:999px;font-size:17px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;
+.play{position:absolute;left:50%;top:50%;z-index:2;display:inline-flex;align-items:center;gap:10px;margin:0;padding:14px 26px;border-radius:999px;font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;color:#fff;cursor:pointer;
  background:rgba(28,30,38,.55);border:1px solid rgba(255,255,255,.30);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
  transform:translate(calc(-50% + var(--x,0px)),calc(-50% + var(--y,0px)));will-change:transform;pointer-events:none;transition:background .25s,border-color .25s}
 .play svg{width:18px;height:18px;flex:none}
 .vcard:hover .play{background:rgba(40,43,54,.72);border-color:rgba(255,255,255,.5)}
-.vcard:focus-visible{outline:3px solid #6284e0;outline-offset:4px}
-
-/* Video modal */
-.modal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,8,14,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .25s}
-.modal[hidden]{display:none}
-.modal.open{opacity:1}
-.mbox{position:relative;width:min(1100px,100%);transform:translateY(14px) scale(.97);transition:transform .3s cubic-bezier(.2,.7,.2,1)}
-.modal.open .mbox{transform:none}
-.mbox video{display:block;width:100%;max-height:82vh;background:#000;border-radius:18px;outline:0}
-.mclose{position:absolute;top:-52px;right:0;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:grid;place-items:center}
-.mclose:hover{background:rgba(255,255,255,.22)}
-.mclose:focus-visible{outline:3px solid #6284e0;outline-offset:2px}
-body.noscroll{overflow:hidden}
+.play:focus-visible{outline:3px solid #6284e0;outline-offset:4px}
+.vclose{position:absolute;top:12px;right:12px;z-index:3;display:none;place-items:center;width:40px;height:40px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(28,30,38,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.vclose:hover{background:rgba(60,64,78,.8)}
+.vclose:focus-visible{outline:3px solid #6284e0;outline-offset:2px}
+/* playing state */
+.vcard.playing{cursor:default}
+.vcard.playing video{object-fit:contain;background:#000;opacity:1;transform:none;pointer-events:auto}
+.vcard.playing::before,.vcard.playing .play{display:none}
+.vcard.playing .vclose{display:grid}
 
 .shot{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.10);background:var(--soft)}
 section{padding:72px 0}
@@ -112,11 +108,9 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
  .dev{grid-template-columns:1fr;padding:24px}
  .vcard{border-radius:20px}
  .play{padding:12px 22px;font-size:16px}
- .modal{padding:12px}
- .mclose{top:-50px}
 }
 @media(prefers-reduced-motion:reduce){
- .vcard video,.modal,.mbox{transition:none}
+ .vcard video{transition:none}
 }
 </style>
 </head>
@@ -147,13 +141,14 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
     </div>
    </div>
    <div>
-    <button class="vcard" id="vcard" type="button" aria-label="Play the Mitfly video" aria-haspopup="dialog">
-     <video src="https://res.cloudinary.com/xmt3m95n/video/upload/v1793309283/5413883659033816677.mp4#t=0.5" preload="metadata" muted playsinline tabindex="-1" aria-hidden="true"></video>
-     <span class="play" id="play">
+    <div class="vcard" id="vcard">
+     <video id="mv" src="https://res.cloudinary.com/xmt3m95n/video/upload/v1793309283/5413883659033816677.mp4#t=0.5" preload="metadata" muted playsinline aria-label="Mitfly video"></video>
+     <button class="play" id="play" type="button">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.85l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
       play video
-     </span>
-    </button>
+     </button>
+     <button class="vclose" id="vclose" type="button" aria-label="Close video">&times;</button>
+    </div>
    </div>
   </div>
  </div>
@@ -218,22 +213,12 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
  </div>
 </footer>
 
-<div class="modal" id="vmodal" role="dialog" aria-modal="true" aria-label="Mitfly video" hidden>
- <div class="mbox">
-  <button class="mclose" id="vclose" type="button" aria-label="Close video">&times;</button>
-  <video id="mv" controls playsinline preload="none"></video>
- </div>
-</div>
-
 <script>
 (function(){
-  var VIDEO = "https://res.cloudinary.com/xmt3m95n/video/upload/v1793309283/5413883659033816677.mp4";
   var card = document.getElementById("vcard");
   var play = document.getElementById("play");
-  var modal = document.getElementById("vmodal");
   var mv = document.getElementById("mv");
   var closeBtn = document.getElementById("vclose");
-  var lastFocus = null;
 
   /* Play button follows the cursor (mouse devices only) */
   var fine = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
@@ -250,6 +235,7 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
     }
     function go(){ if (!raf) raf = requestAnimationFrame(tick); }
     card.addEventListener("pointermove", function(e){
+      if (card.classList.contains("playing")) return;
       var r = card.getBoundingClientRect();
       var maxX = r.width / 2 - play.offsetWidth / 2 - 14;
       var maxY = r.height / 2 - play.offsetHeight / 2 - 14;
@@ -260,33 +246,32 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-s
     card.addEventListener("pointerleave", function(){ tx = 0; ty = 0; go(); });
   }
 
-  /* Open and close the video */
-  function openVideo(){
-    lastFocus = document.activeElement;
-    mv.src = VIDEO;
-    modal.hidden = false;
-    document.body.classList.add("noscroll");
-    requestAnimationFrame(function(){ modal.classList.add("open"); });
+  /* Play the video inside the box */
+  function start(){
+    card.classList.add("playing");
+    mv.controls = true;
+    mv.muted = false;
     var p = mv.play();
-    if (p && p.catch) p.catch(function(){});
+    if (p && p.catch) {
+      p.catch(function(){ mv.muted = true; mv.play().catch(function(){}); });
+    }
     closeBtn.focus({preventScroll:true});
   }
-  function closeVideo(){
-    if (modal.hidden) return;
-    modal.classList.remove("open");
+  function stop(){
     mv.pause();
-    setTimeout(function(){
-      modal.hidden = true;
-      mv.removeAttribute("src");
-      mv.load();
-    }, 250);
-    document.body.classList.remove("noscroll");
-    if (lastFocus) lastFocus.focus({preventScroll:true});
+    mv.controls = false;
+    mv.muted = true;
+    card.classList.remove("playing");
+    mv.load();
   }
-  card.addEventListener("click", openVideo);
-  closeBtn.addEventListener("click", closeVideo);
-  modal.addEventListener("click", function(e){ if (e.target === modal) closeVideo(); });
-  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeVideo(); });
+  card.addEventListener("click", function(){
+    if (!card.classList.contains("playing")) start();
+  });
+  closeBtn.addEventListener("click", function(e){ e.stopPropagation(); stop(); });
+  mv.addEventListener("ended", stop);
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && card.classList.contains("playing")) stop();
+  });
 })();
 </script>
 </body>
